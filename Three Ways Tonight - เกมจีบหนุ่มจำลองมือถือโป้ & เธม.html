@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Three Ways Tonight — โป้ & เธม</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: IBM Plex Sans Thai & Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"IBM Plex Sans Thai"', 'sans-serif'],
+            display: ['"Prompt"', 'sans-serif'],
+          },
+          colors: {
+            line: {
+              bg: '#8CABD9',
+              green: '#06C755',
+              bubble: '#98E165',
+              dark: '#1E293B',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'IBM Plex Sans Thai', sans-serif;
+      background: radial-gradient(circle at top, #1e1b4b 0%, #090d16 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Realistic Phone Frame */
+    #phone-shell {
+      width: 100%;
+      max-width: 420px;
+      height: 100dvh;
+      max-height: 860px;
+      position: relative;
+      overflow: hidden;
+      background-color: #0f172a;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.12);
+    }
+
+    @media (min-width: 480px) {
+      #phone-shell {
+        height: 92dvh;
+        border-radius: 42px;
+        border: 8px solid #1e293b;
+      }
+    }
+
+    /* Wallpapers with graceful fallback gradients if local images are not uploaded yet */
+    .bg-lock-wallpaper {
+      background-image:
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.78)),
+        url('bg-lock.jpg'),
+        linear-gradient(135deg, #312e81 0%, #831843 50%, #1e1b4b 100%);
+      background-size: cover;
+      background-position: center;
+    }
+
+    .bg-home-wallpaper {
+      background-image:
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.25), rgba(15, 23, 42, 0.65)),
+        url('bg-home.jpg'),
+        linear-gradient(160deg, #0284c7 0%, #3b82f6 45%, #1e293b 100%);
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* Animations */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .animate-shake {
+      animation: shake 0.38s ease-in-out;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(10px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .msg-pop {
+      animation: popIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes pulseSoft {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    .animate-pulse-soft {
+      animation: pulseSoft 2s infinite;
+    }
+
+    /* Hide scrollbar cleanly */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Glassmorphism helpers */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.16);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .glass-dark {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main Smartphone Container -->
+  <div id="phone-shell" class="flex flex-col text-white select-none">
+
+    <!-- Top Status Bar (Always Visible) -->
+    <header class="relative z-40 flex items-center justify-between px-5 pt-3 pb-2 text-xs font-medium tracking-wide bg-black/25 backdrop-blur-sm">
+      <div class="flex items-center gap-2">
+        <span id="status-clock" class="font-display font-semibold">20:45</span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-500/80 text-white font-semibold">HBD Thame 🎂</span>
+      </div>
+
+      <!-- BGM & Endings Shortcut -->
+      <div class="flex items-center gap-2">
+        <button id="bgm-toggle" onclick="toggleBGM()" class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 transition text-[11px]" title="เปิด/ปิดเพลงประกอบ">
+          <span id="bgm-icon">🔇</span>
+          <span id="bgm-label">BGM</span>
+        </button>
+        <button onclick="openEndingsModal()" class="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-[11px] active:scale-95 transition">
+          <span>🏆</span>
+          <span id="ending-counter">0/3</span>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-1.5 opacity-90">
+        <span>5G</span>
+        <div class="w-5 h-2.5 border border-white/80 rounded-[3px] p-[1px] flex items-center">
+          <div class="w-3.5 h-full bg-emerald-400 rounded-[1px]"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hidden YouTube BGM Player Container -->
+    <div id="yt-player-container" class="hidden"></div>
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 1: LOCK SCREEN (PIN: 7745)                         -->
+    <!-- ========================================================= -->
+    <section id="screen-lock" class="flex-1 flex flex-col justify-between px-6 py-6 bg-lock-wallpaper relative z-20 transition-opacity duration-300">
+      <!-- Clock & Notification Preview -->
+      <div class="text-center mt-2">
+        <p class="text-xs uppercase tracking-widest text-rose-200/90 font-medium">วันพิเศษของเธม • 21 พฤศจิกายน</p>
+        <h1 id="lock-big-time" class="font-display text-6xl font-light tracking-tight mt-1 drop-shadow">20:45</h1>
+        <p class="text-xs text-white/80 mt-1">โทรศัพท์ของ พี่โป้ (Po)</p>
+
+        <!-- Lock Screen Notification Card -->
+        <div class="mt-4 glass-card rounded-2xl p-3 text-left shadow-lg">
+          <div class="flex items-center justify-between text-[11px] text-white/80 mb-1">
+            <span class="flex items-center gap-1.5 font-semibold text-emerald-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              LINE • เธม ❤️
+            </span>
+            <span>เมื่อสักครู่</span>
+          </div>
+          <p class="text-xs text-white/95 line-clamp-1">พี่โป้ครับ คิวถ่ายวันนี้เลทหนักเลย...</p>
+        </div>
+      </div>
+
+      <!-- PIN Pad Area -->
+      <div class="mb-2">
+        <div class="text-center mb-4">
+          <p id="pin-prompt" class="text-sm font-medium text-white/95">ใส่รหัสผ่าน 4 หลักเพื่อปลดล็อก</p>
+          <p id="pin-hint" class="text-[11px] text-rose-200/80 mt-0.5 h-4">คำใบ้: ตัวเลขสำคัญของเราสองคน</p>
+
+          <!-- 4 PIN Dots -->
+          <div id="pin-dots" class="flex justify-center gap-4 mt-3">
+            <span class="pin-dot w-3.5 h-3.5 rounded-full border-2 border-white/80 transition-all"></span>
+            <span class="pin-dot w-3.5 h-3.5 rounded-full border-2 border-white/80 transition-all"></span>
+            <span class="pin-dot w-3.5 h-3.5 rounded-full border-2 border-white/80 transition-all"></span>
+            <span class="pin-dot w-3.5 h-3.5 rounded-full border-2 border-white/80 transition-all"></span>
+          </div>
+        </div>
+
+        <!-- Keypad Grid -->
+        <div class="grid grid-cols-3 gap-3 max-w-[260px] mx-auto">
+          <button onclick="pressPin('1')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">1</button>
+          <button onclick="pressPin('2')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">2</button>
+          <button onclick="pressPin('3')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">3</button>
+          <button onclick="pressPin('4')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">4</button>
+          <button onclick="pressPin('5')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">5</button>
+          <button onclick="pressPin('6')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">6</button>
+          <button onclick="pressPin('7')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">7</button>
+          <button onclick="pressPin('8')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">8</button>
+          <button onclick="pressPin('9')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">9</button>
+          <button onclick="fillHintPin()" class="h-14 rounded-full text-[11px] text-rose-200 hover:bg-white/10 active:scale-95 transition">ใบ้รหัส</button>
+          <button onclick="pressPin('0')" class="pin-btn h-14 rounded-full glass-card text-xl font-display font-medium hover:bg-white/25 active:scale-90 transition">0</button>
+          <button onclick="deletePin()" class="h-14 rounded-full text-sm text-white/90 hover:bg-white/10 active:scale-95 transition">ลบ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 2: HOME SCREEN                                     -->
+    <!-- ========================================================= -->
+    <section id="screen-home" class="hidden flex-1 flex flex-col justify-between p-5 bg-home-wallpaper relative z-20">
+      <!-- Top Widgets -->
+      <div class="space-y-3 mt-1">
+        <!-- Couple Anniversary / Birthday Widget -->
+        <div class="glass-dark rounded-3xl p-4 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-[11px] uppercase tracking-wider text-amber-300 font-semibold">Today's Special Event</span>
+              <h2 class="font-display text-lg font-semibold text-white mt-0.5">วันเกิดเธม (MARS Leader) 🎂</h2>
+              <p class="text-xs text-slate-200/90 mt-1">ตอนนี้โป้นั่งรออยู่ที่ร้านอาหารที่จองไว้...</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-400 to-amber-400 flex items-center justify-center text-2xl shadow-md shrink-0">
+              🍰
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs">
+            <span class="text-emerald-300 font-medium">● มีข้อความใหม่จาก เธม ❤️</span>
+            <button onclick="openApp('line')" class="px-3 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold active:scale-95 transition">
+              เปิดอ่านแชท
+            </button>
+          </div>
+        </div>
+
+        <!-- Mini Memo Sticky Card -->
+        <div class="glass-card rounded-2xl p-3.5 text-xs text-white/95 shadow">
+          <p class="font-semibold text-amber-200 mb-1">📌 สิ่งที่โป้เตรียมไว้คืนนี้:</p>
+          <p class="leading-relaxed text-white/90">เค้กวันเกิดมินิมอล + ของขวัญที่แอบไปเลือกเอง หวังว่าเธมจะเลิกกองทันเวลานะ...</p>
+        </div>
+      </div>
+
+      <!-- Bottom App Dock (4 Required Apps) -->
+      <div class="mb-2">
+        <p class="text-center text-[11px] text-white/80 mb-2.5 drop-shadow">แตะแอปด้านล่างเพื่อสำรวจมือถือของโป้</p>
+        <div class="glass-dark rounded-3xl p-3.5 grid grid-cols-4 gap-2 shadow-2xl">
+          <!-- App 1: Phone -->
+          <button onclick="openApp('phone')" class="flex flex-col items-center gap-1.5 group active:scale-90 transition">
+            <div class="w-13 h-13 w-12 h-12 rounded-2xl bg-gradient-to-b from-emerald-400 to-green-600 flex items-center justify-center text-2xl shadow-lg">
+              📞
+            </div>
+            <span class="text-[11px] font-medium text-white/95">โทรศัพท์</span>
+          </button>
+
+          <!-- App 2: Notes -->
+          <button onclick="openApp('notes')" class="flex flex-col items-center gap-1.5 group active:scale-90 transition">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-500 flex items-center justify-center text-2xl shadow-lg">
+              📝
+            </div>
+            <span class="text-[11px] font-medium text-white/95">โน๊ต</span>
+          </button>
+
+          <!-- App 3: LINE -->
+          <button onclick="openApp('line')" class="relative flex flex-col items-center gap-1.5 group active:scale-90 transition">
+            <span id="line-home-badge" class="absolute -top-1 right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shadow ring-2 ring-slate-900">3</span>
+            <div class="w-12 h-12 rounded-2xl bg-[#06C755] flex items-center justify-center text-white font-display font-bold text-sm shadow-lg">
+              LINE
+            </div>
+            <span class="text-[11px] font-medium text-white/95">แชทไลน์</span>
+          </button>
+
+          <!-- App 4: Browser -->
+          <button onclick="openApp('browser')" class="flex flex-col items-center gap-1.5 group active:scale-90 transition">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-b from-sky-400 to-blue-600 flex items-center justify-center text-2xl shadow-lg">
+              🌐
+            </div>
+            <span class="text-[11px] font-medium text-white/95">ค้นหา</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- APP 1: PHONE APP (โทรเข้า - โทรออก)                       -->
+    <!-- ========================================================= -->
+    <section id="app-phone" class="hidden flex-1 flex flex-col bg-slate-950 text-white z-30">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900">
+        <button onclick="goHome()" class="text-sky-400 text-sm font-medium flex items-center gap-1 active:opacity-70">
+          <span>‹</span> หน้าหลัก
+        </button>
+        <h2 class="font-display font-semibold text-base">ประวัติการโทร</h2>
+        <span class="w-12"></span>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+        <p class="text-xs text-slate-400 px-1">ล่าสุดวันนี้</p>
+
+        <!-- Call Item: Thame -->
+        <div onclick="showCallDetail('thame')" class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-rose-500/40 flex items-center justify-between cursor-pointer active:scale-[0.99] transition">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold">T</div>
+            <div>
+              <p class="font-semibold text-sm text-rose-300">เธม ❤️ (แฟน)</p>
+              <p class="text-xs text-slate-400">↗ โทรออก • คุย 02:14 นาที</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-slate-400">18:10</span>
+            <p class="text-[10px] text-sky-400 mt-0.5">แตะดูบันทึก</p>
+          </div>
+        </div>
+
+        <!-- Call Item: Mom -->
+        <div onclick="showCallDetail('mom')" class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-between cursor-pointer active:scale-[0.99] transition">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold">ม</div>
+            <div>
+              <p class="font-semibold text-sm text-white">แม่</p>
+              <p class="text-xs text-slate-400">↙ สายเรียกเข้า • คุย 05:32 นาที</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-slate-400">14:20</span>
+            <p class="text-[10px] text-sky-400 mt-0.5">แตะดูบันทึก</p>
+          </div>
+        </div>
+
+        <!-- Call Item: Dad -->
+        <div onclick="showCallDetail('dad')" class="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-between cursor-pointer active:scale-[0.99] transition">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-sky-500/20 text-sky-300 flex items-center justify-center font-bold">พ</div>
+            <div>
+              <p class="font-semibold text-sm text-white">พ่อ</p>
+              <p class="text-xs text-slate-400">↙ สายเรียกเข้า • คุย 01:48 นาที</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-slate-400">11:05</span>
+            <p class="text-[10px] text-sky-400 mt-0.5">แตะดูบันทึก</p>
+          </div>
+        </div>
+
+        <!-- Call Detail Box -->
+        <div id="call-detail-box" class="hidden mt-4 p-4 rounded-2xl bg-slate-900/90 border border-sky-500/30 text-xs leading-relaxed text-slate-200 msg-pop">
+          <p id="call-detail-title" class="font-semibold text-sky-300 mb-1"></p>
+          <p id="call-detail-text"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- APP 2: NOTES APP (โน๊ต)                                   -->
+    <!-- ========================================================= -->
+    <section id="app-notes" class="hidden flex-1 flex flex-col bg-[#FEFCE8] text-slate-800 z-30">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-amber-200 bg-amber-100/80">
+        <button onclick="goHome()" class="text-amber-700 text-sm font-semibold flex items-center gap-1 active:opacity-70">
+          <span>‹</span> หน้าหลัก
+        </button>
+        <h2 class="font-display font-semibold text-base text-amber-950">โน๊ตของโป้</h2>
+        <span class="w-12"></span>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+        <!-- Note 1: Producer Schedule -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-amber-200/80">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">งานโปรดิวเซอร์</span>
+            <span class="text-[11px] text-slate-400">อัปเดตเมื่อวาน</span>
+          </div>
+          <h3 class="font-display font-semibold text-sm text-slate-900 mb-2">🎧 ตารางงานทำเพลงคัมแบ็กวง MARS</h3>
+          <ul class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
+            <li>• <span class="font-medium text-slate-800">จุน:</span> นัดอัดไกด์ท่อนฮุค (ต้องคอยตามตัว ไม่งั้นแอบอู้หลับในห้องอัด)</li>
+            <li>• <span class="font-medium text-slate-800">ดีแลน:</span> ปรับบีทท่อนแร็พให้ดุดันขึ้น เจ้าตัวบ่นยับแต่ตั้งใจซ้อมสุดๆ</li>
+            <li>• <span class="font-medium text-slate-800">เปปเปอร์ & นาโน:</span> เช็กไลน์ประสานเสียงช่วงบริดจ์</li>
+            <li>• <span class="font-medium text-rose-600">เธม:</span> อัดเสียงร้องหลัก — <i>ชอบแอบมองตอนเราปรับมิกเซอร์จนเสียสมาธิทุกที</i></li>
+          </ul>
+        </div>
+
+        <!-- Note 2: Thame's Favorites -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-rose-200">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">Secret Memo ❤️</span>
+            <span class="text-[11px] text-slate-400">ปักหมุด</span>
+          </div>
+          <h3 class="font-display font-semibold text-sm text-slate-900 mb-2">🍽️ ของที่เธมชอบกิน & แพลนวันเกิด</h3>
+          <ul class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
+            <li>• <span class="font-medium text-slate-800">อาหารโปรด:</span> พาสต้าซอสทรัฟเฟิล, สเต๊กเนื้อมีเดียมแรร์, ซุปเห็ดร้อนๆ</li>
+            <li>• <span class="font-medium text-slate-800">เครื่องดื่ม:</span> อเมริกาโน่เย็นไม่หวาน (ช่วงไดเอตไอดอล แต่แอบกินเค้กได้ถ้าพี่โป้ป้อน)</li>
+            <li>• <span class="font-medium text-slate-800">ร้านที่จองคืนนี้:</span> ร้านลับวิวดีที่เธมเคยบ่นว่าอยากไปฉลองด้วยกันสองคน</li>
+            <li class="pt-1 text-rose-600 italic">"ถึงงานจะยุ่งแค่ไหน แค่ได้อยู่ด้วยกันก่อนเที่ยงคืนก็พอแล้ว..."</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- APP 3: BROWSER APP (เว็บค้นหา)                            -->
+    <!-- ========================================================= -->
+    <section id="app-browser" class="hidden flex-1 flex flex-col bg-slate-50 text-slate-800 z-30">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white">
+        <button onclick="goHome()" class="text-blue-600 text-sm font-semibold flex items-center gap-1 active:opacity-70">
+          <span>‹</span> หน้าหลัก
+        </button>
+        <h2 class="font-display font-semibold text-base text-slate-900">ประวัติการค้นหา</h2>
+        <span class="w-12"></span>
+      </div>
+
+      <div class="p-4 space-y-3 overflow-y-auto flex-1 no-scrollbar">
+        <!-- Fake Search Bar -->
+        <div class="flex items-center gap-2 bg-slate-200/80 rounded-full px-4 py-2.5 text-xs text-slate-600">
+          <span>🔍</span>
+          <span>ค้นหาไอเดียเซอร์ไพรส์วันเกิดแฟน...</span>
+        </div>
+
+        <p class="text-xs font-semibold text-slate-400 pt-1">ค้นหาล่าสุดของโป้</p>
+
+        <div class="space-y-2.5">
+          <div class="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-semibold text-blue-600">🍽️ ร้านอาหารบรรยากาศดี ดินเนอร์วันเกิด กรุงเทพ</p>
+            <p class="text-[11px] text-slate-500 mt-1">จองโต๊ะมุมส่วนตัว 20:30 น. — แจ้งทางร้านขอเตรียมจานเค้กไว้ให้</p>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-semibold text-rose-600">💐 ร้านดอกไม้ ช่อดอกไม้ความหมายดีๆ ส่งด่วน</p>
+            <p class="text-[11px] text-slate-500 mt-1">ดอกทานตะวัน & กุหลาบขาว — ความหมาย: "คุณคือความภูมิใจและแสงสว่างของฉันเสมอ"</p>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-semibold text-amber-600">💍 สร้อยคู่ มินิมอล สลักชื่อย่อ T & P</p>
+            <p class="text-[11px] text-slate-500 mt-1">เลือกแบบเรียบๆ ใส่ซ่อนใต้เสื้อได้ เผื่อเธมใส่ขึ้นสเตจหรือซ้อมเต้นจะได้ไม่เกะกะ</p>
+          </div>
+
+          <div class="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+            <p class="text-xs font-semibold text-indigo-600">🎂 เค้กวันเกิดมินิมอล เทียนเย็น</p>
+            <p class="text-[11px] text-slate-500 mt-1">สั่งทำเค้กครีมขาวแต่งหัวใจสีแดง เขียนคำว่า happy birthday เรียบร้อย</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- APP 4: LINE APP (CHAT LIST & STORY ROOMS)                 -->
+    <!-- ========================================================= -->
+    <section id="app-line" class="hidden flex-1 flex flex-col bg-white text-slate-900 z-30 overflow-hidden">
+
+      <!-- VIEW A: LINE CHAT LIST -->
+      <div id="line-list-view" class="flex-1 flex flex-col">
+        <div class="flex items-center justify-between px-4 py-3.5 bg-[#1E293B] text-white">
+          <button onclick="goHome()" class="text-slate-300 text-sm flex items-center gap-1 active:opacity-70">
+            <span>‹</span> หน้าหลัก
+          </button>
+          <h2 class="font-display font-semibold text-base">แชท (3)</h2>
+          <span class="w-12"></span>
+        </div>
+
+        <div class="divide-y divide-slate-100 flex-1 overflow-y-auto">
+          <!-- Chat 1: MARS & Po -->
+          <button onclick="openChatRoom('mars')" class="w-full px-4 py-3.5 flex items-center gap-3.5 hover:bg-slate-50 active:bg-slate-100 text-left transition">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-display font-bold text-sm shrink-0 shadow-sm">
+              MARS
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <p class="font-semibold text-sm text-slate-900 truncate">MARS & Po (6)</p>
+                <span class="text-[11px] text-slate-400">19:40</span>
+              </div>
+              <p class="text-xs text-slate-500 truncate mt-0.5">เธม: เพลงรักสิครับ ผมมีแรงบันดาลใจชั้นดีอยู่ใกล้ตัว 😉</p>
+            </div>
+            <span id="badge-mars" class="w-5 h-5 rounded-full bg-[#06C755] text-white text-[10px] font-bold flex items-center justify-center shrink-0">6</span>
+          </button>
+
+          <!-- Chat 2: Jun -->
+          <button onclick="openChatRoom('jun')" class="w-full px-4 py-3.5 flex items-center gap-3.5 hover:bg-slate-50 active:bg-slate-100 text-left transition">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 text-amber-300 flex items-center justify-center font-display font-bold text-base shrink-0 shadow-sm">
+              จุน
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <p class="font-semibold text-sm text-slate-900 truncate">จุน (พี่ใหญ่ MARS)</p>
+                <span class="text-[11px] text-slate-400">20:15</span>
+              </div>
+              <p class="text-xs text-slate-500 truncate mt-0.5">พี่โป้ วันนี้วันเกิดไอ้เธม อย่าลืมของขวัญล่ะ</p>
+            </div>
+            <span id="badge-jun" class="w-5 h-5 rounded-full bg-[#06C755] text-white text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+          </button>
+
+          <!-- Chat 3: Thame (Main Route) -->
+          <button onclick="openChatRoom('thame')" class="w-full px-4 py-3.5 flex items-center gap-3.5 bg-rose-50/50 hover:bg-rose-50 active:bg-rose-100/70 text-left transition">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-600 text-white flex items-center justify-center font-display font-bold text-base shrink-0 shadow-sm">
+              เธม ❤️
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between">
+                <p class="font-semibold text-sm text-rose-700 truncate">เธม ❤️</p>
+                <span class="text-[11px] text-rose-500 font-medium">20:45</span>
+              </div>
+              <p id="thame-preview-text" class="text-xs text-slate-700 font-medium truncate mt-0.5">พี่โป้ครับ วันนี้นัดเราอาจจะไม่ได้แล้ว...</p>
+            </div>
+            <span id="badge-thame" class="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 animate-pulse">!</span>
+          </button>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-100 text-center">
+          <p class="text-[11px] text-slate-500">💡 แนะนำให้อ่านแชทกลุ่มและแชทจุนก่อน แล้วค่อยเข้าแชท <span class="font-semibold text-rose-600">เธม ❤️</span> เพื่อเริ่มเลือกเส้นทาง</p>
+        </div>
+      </div>
+
+      <!-- VIEW B: ACTIVE CHAT ROOM -->
+      <div id="line-room-view" class="hidden flex-1 flex flex-col bg-[#8CABD9] overflow-hidden">
+        <!-- Room Header -->
+        <div class="flex items-center justify-between px-3 py-3 bg-[#1E293B] text-white shrink-0 shadow">
+          <button onclick="backToChatList()" class="text-white text-sm flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-white/10">
+            <span class="text-lg leading-none">‹</span> แชท
+          </button>
+          <div class="text-center">
+            <h3 id="room-title" class="font-display font-semibold text-sm">เธม ❤️</h3>
+            <p id="room-subtitle" class="text-[10px] text-emerald-300">กำลังใช้งาน</p>
+          </div>
+          <button id="room-reset-btn" onclick="resetThameStory()" class="text-[11px] px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 text-white">
+            เริ่มใหม่
+          </button>
+        </div>
+
+        <!-- Inner Monologue / Scene Context Banner -->
+        <div id="scene-narration-bar" class="hidden bg-slate-900/85 backdrop-blur-sm text-amber-100 px-4 py-2.5 text-xs leading-relaxed border-b border-white/10 shrink-0">
+          <span id="scene-narration-text"></span>
+        </div>
+
+        <!-- Messages Scroll Container -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-3.5 space-y-3 no-scrollbar">
+          <!-- Messages injected dynamically -->
+        </div>
+
+        <!-- Wait Timer Overlay Card (For Real-Time Game Clock Wait) -->
+        <div id="wait-timer-panel" class="hidden mx-3 mb-3 p-4 rounded-2xl bg-slate-900/95 text-white border border-amber-400/40 shadow-xl shrink-0 msg-pop">
+          <div class="flex items-center justify-between mb-1.5">
+            <span id="wait-title" class="text-xs font-semibold text-amber-300">⏳ กำลังรอเวลา...</span>
+            <span id="wait-game-clock" class="text-xs font-display font-bold px-2 py-0.5 rounded bg-white/10 text-emerald-300">20:50 → 22:50</span>
+          </div>
+          <p id="wait-desc" class="text-xs text-slate-300 leading-relaxed mb-2.5"></p>
+          <!-- Progress Bar -->
+          <div class="w-full h-2 rounded-full bg-slate-700 overflow-hidden mb-2">
+            <div id="wait-progress-bar" class="h-full bg-gradient-to-r from-amber-400 to-rose-400 transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span>1 ชม. ในเกม = 2 นาทีจริง</span>
+            <span id="wait-countdown" class="font-mono font-semibold text-white">เหลือเวลา 04:00</span>
+          </div>
+        </div>
+
+        <!-- Interactive Choice Buttons Area -->
+        <div id="choice-panel" class="hidden bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 space-y-2 shrink-0">
+          <p id="choice-prompt" class="text-[11px] font-semibold text-slate-500 text-center">เลือกการตอบกลับของพี่โป้:</p>
+          <div id="choice-buttons" class="space-y-2">
+            <!-- Buttons injected dynamically -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- MODAL: ENDING CELEBRATION & GALLERY                       -->
+    <!-- ========================================================= -->
+    <div id="ending-modal" class="hidden absolute inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-5">
+      <div class="w-full max-w-sm bg-slate-900 border border-amber-300/30 rounded-3xl p-5 text-white shadow-2xl msg-pop">
+        <div class="text-center">
+          <span id="modal-badge" class="inline-block text-[11px] font-semibold px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 mb-2">
+            ปลดล็อกฉากจบแล้ว!
+          </span>
+          <h3 id="modal-ending-title" class="font-display text-xl font-bold text-white leading-snug"></h3>
+          <p id="modal-ending-desc" class="text-xs text-slate-300 leading-relaxed mt-2.5"></p>
+        </div>
+
+        <!-- Collection List -->
+        <div class="mt-4 pt-3.5 border-t border-slate-800 space-y-2">
+          <p class="text-[11px] font-semibold text-slate-400">คอลเลกชันฉากจบทั้งหมด (<span id="modal-count">0</span>/3)</p>
+          <div id="ending-collection-list" class="space-y-1.5 text-xs">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="mt-5 flex gap-2">
+          <button onclick="closeEndingsModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium transition">
+            ปิดหน้าต่าง
+          </button>
+          <button onclick="closeEndingsModal(); openChatRoom('thame'); resetThameStory();" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-slate-950 text-xs font-bold shadow active:scale-95 transition">
+            เล่นรูทอื่นต่อ
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- JAVASCRIPT: GAME ENGINE, AUDIO, TIMER & STORY DATA        -->
+  <!-- ========================================================= -->
+  <script>
+    // ---------- 1. SOUND EFFECTS (Web Audio API) & BGM ----------
+    let audioCtx = null;
+    let bgmActive = false;
+
+    function playTone(freq = 660, duration = 0.09, type = 'sine', vol = 0.08) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // Ignore audio errors on restricted devices
+      }
+    }
+
+    function playNotifySound() {
+      playTone(784, 0.09, 'sine', 0.09);
+      setTimeout(() => playTone(1046, 0.14, 'sine', 0.08), 90);
+    }
+
+    function toggleBGM() {
+      const container = document.getElementById('yt-player-container');
+      const icon = document.getElementById('bgm-icon');
+      const label = document.getElementById('bgm-label');
+      bgmActive = !bgmActive;
+
+      if (bgmActive) {
+        container.innerHTML = `<iframe width="0" height="0" src="https://www.youtube.com/embed/NURdxAL9_3I?autoplay=1&loop=1&playlist=NURdxAL9_3I" allow="autoplay"></iframe>`;
+        icon.textContent = '🎵';
+        label.textContent = 'ON';
+      } else {
+        container.innerHTML = '';
+        icon.textContent = '🔇';
+        label.textContent = 'BGM';
+      }
+    }
+
+    // ---------- 2. PIN LOCK SCREEN LOGIC (PIN: 7745) ----------
+    let currentPin = '';
+    const CORRECT_PIN = '7745';
+
+    function updatePinDots() {
+      const dots = document.querySelectorAll('.pin-dot');
+      dots.forEach((dot, idx) => {
+        if (idx < currentPin.length) {
+          dot.classList.add('bg-white', 'scale-110');
+        } else {
+          dot.classList.remove('bg-white', 'scale-110');
+        }
+      });
+    }
+
+    function pressPin(digit) {
+      if (currentPin.length >= 4) return;
+      playTone(520 + Number(digit) * 25, 0.06);
+      currentPin += digit;
+      updatePinDots();
+
+      if (currentPin.length === 4) {
+        if (currentPin === CORRECT_PIN) {
+          playNotifySound();
+          setTimeout(() => {
+            document.getElementById('screen-lock').classList.add('hidden');
+            document.getElementById('screen-home').classList.remove('hidden');
+          }, 220);
+        } else {
+          const dotsWrap = document.getElementById('pin-dots');
+          const hint = document.getElementById('pin-hint');
+          dotsWrap.classList.add('animate-shake');
+          hint.textContent = 'รหัสไม่ถูกต้อง ลองนึกถึงเลขสำคัญของเรา (7745)';
+          hint.classList.add('text-rose-300', 'font-semibold');
+          playTone(220, 0.2, 'triangle', 0.1);
+          setTimeout(() => {
+            dotsWrap.classList.remove('animate-shake');
+            currentPin = '';
+            updatePinDots();
+          }, 420);
+        }
+      }
+    }
+
+    function deletePin() {
+      playTone(380, 0.05);
+      currentPin = currentPin.slice(0, -1);
+      updatePinDots();
+    }
+
+    function fillHintPin() {
+      document.getElementById('pin-hint').textContent = 'รหัสปลดล็อกคือ 7745 ❤️';
+      playTone(640, 0.08);
+    }
+
+    // ---------- 3. NAVIGATION BETWEEN HOME & APPS ----------
+    function hideAllScreens() {
+      ['screen-home', 'app-phone', 'app-notes', 'app-browser', 'app-line'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+    }
+
+    function goHome() {
+      playTone(480, 0.05);
+      hideAllScreens();
+      document.getElementById('screen-home').classList.remove('hidden');
+    }
+
+    function openApp(appName) {
+      playTone(620, 0.06);
+      hideAllScreens();
+      document.getElementById(`app-${appName}`).classList.remove('hidden');
+      if (appName === 'line') {
+        backToChatList();
+      }
+    }
+
+    // ---------- 4. PHONE APP CALL DETAILS ----------
+    const callNotes = {
+      thame: {
+        title: 'บันทึกสาย: เธม ❤️ (18:10 น.)',
+        text: 'เธมโทรมาตอนพักเบรกกองถ่าย บอกว่า "คิดถึงพี่โป้จัง อยากวาร์ปไปหาแล้ว คืนนี้เจอกันที่ร้านนะครับ" เสียงดูเหนื่อยแต่ยังพยายามทำเสียงสดใสให้เราสบายใจ'
+      },
+      mom: {
+        title: 'บันทึกสาย: แม่ (14:20 น.)',
+        text: 'แม่โทรมาถามว่าช่วงนี้ทำงานหนักไหม อย่าลืมกินข้าวให้ตรงเวลา แล้วก็ฝากอวยพรวันเกิดน้องเธมด้วย'
+      },
+      dad: {
+        title: 'บันทึกสาย: พ่อ (11:05 น.)',
+        text: 'พ่อโทรมาเช็กเรื่องรถที่เอาเข้าศูนย์เมื่อสัปดาห์ก่อน ถามว่าขับทางไกลช่วงกลางคืนโอเคไหม'
+      }
+    };
+
+    function showCallDetail(who) {
+      playTone(580, 0.06);
+      const box = document.getElementById('call-detail-box');
+      document.getElementById('call-detail-title').textContent = callNotes[who].title;
+      document.getElementById('call-detail-text').textContent = callNotes[who].text;
+      box.classList.remove('hidden');
+    }
+
+    // ---------- 5. LINE CHATS DATA (MARS GROUP & JUN) ----------
+    const staticChats = {
+      mars: {
+        title: 'MARS & Po (6)',
+        subtitle: 'จุน, ดีแลน, เปปเปอร์, นาโน, เธม, โป้',
+        narration: 'แชทกลุ่มวง MARS ที่โป้เป็นโปรดิวเซอร์หลักให้ บรรยากาศคึกคักเหมือนทุกวัน',
+        messages: [
+          { sender: 'จุน', role: 'พี่ใหญ่', color: 'bg-slate-700 text-amber-200', text: 'พี่โป้ครับ เพลงคัมแบ็กรอบนี้ขอแบบชิลๆ นั่งร้องบนเก้าอี้ได้ป่ะ ท่าเต้นไม่ต้องเยอะ เดี๋ยวข้อเข่าผมพัง 🥱', time: '19:31' },
+          { sender: 'ดีแลน', role: 'เมนแร็พ', color: 'bg-red-900 text-red-200', text: 'อู้ตลอดเลยนะมึงอะไอ้จุน! คัมแบ็กทั้งทีมันต้องบีทหนักๆ แร็พเดือดๆ ดิวะ เอาให้เวทีลุกเป็นไฟ!', time: '19:32' },
+          { sender: 'จุน', role: 'พี่ใหญ่', color: 'bg-slate-700 text-amber-200', text: 'ไฟลุกก็ไปดับเองดิ ใครจะเต้นบ้าพลังเหมือนนายล่ะพ่อคนขยัน 😏', time: '19:33' },
+          { sender: 'เปปเปอร์', role: 'คนกลาง', color: 'bg-teal-800 text-teal-200', text: 'ใจเย็นๆ ทั้งคู่เลยครับ เดี๋ยวพี่โป้ปวดหัว เอาไว้คุยคอนเซปต์รวมกันพรุ่งนี้ดีกว่านะ', time: '19:34' },
+          { sender: 'นาโน', role: 'น้องเล็ก', color: 'bg-amber-600 text-white', text: 'พี่จุนกับพี่ดีแลนตีกันอีกแล้ววว นี่มันคู่รักตีกันชัดๆ 🤭✨ แต่เห็นด้วยกับพี่เปปเปอร์นะครับ ถามพี่โป้ดีกว่า!', time: '19:35' },
+          { sender: 'โป้', isMe: true, text: '555 เดี๋ยวพี่ลองทำเดโม่ผสมทั้งพาร์ทดนตรีเท่ๆ กับท่อนฟังสบายๆ ให้ลองฟังดูนะ', time: '19:37' },
+          { sender: 'เธม ❤️', role: 'ลีดเดอร์', color: 'bg-rose-600 text-white', text: 'ผมเสนอทำเพลงรักครับพี่โป้ 💖 ช่วงนี้ผมมีแรงบันดาลใจชั้นดีอยู่ใกล้ตัว ฟังเพลงพี่โป้ทีไรก็เขินทุกทีเลยครับ', time: '19:39' },
+          { sender: 'ดีแลน', role: 'เมนแร็พ', color: 'bg-red-900 text-red-200', text: 'โว้ยยย ไอ้ลีดเดอร์! อวดแฟนอีกแล้ว หมั่นไส้โว้ยยย 🙄', time: '19:40' },
+          { sender: 'นาโน', role: 'น้องเล็ก', color: 'bg-amber-600 text-white', text: 'พี่เธมคลั่งรักพี่โป้อีกแล้วครับทุกคนนน! 🙈💕', time: '19:40' }
+        ]
+      },
+      jun: {
+        title: 'จุน (พี่ใหญ่ MARS)',
+        subtitle: 'ออนไลน์',
+        narration: 'ถึงภายนอกจุนจะดูขี้เกียจและชอบแกล้งคนอื่น แต่เรื่องสำคัญของน้องๆ ในวงไม่เคยพลาด',
+        messages: [
+          { sender: 'จุน', role: 'พี่ใหญ่', color: 'bg-slate-700 text-amber-200', text: 'พี่โป้ แอบทักมาเตือน เผื่อพี่ปั่นมิกซ์เพลงจนลืม', time: '20:12' },
+          { sender: 'จุน', role: 'พี่ใหญ่', color: 'bg-slate-700 text-amber-200', text: 'วันนี้วันเกิดไอ้เธมนะพี่ เตรียมของขวัญไว้ยัง? รายนั้นรอเจอพี่ทั้งวันเลยนะบอกก่อน', time: '20:13' },
+          { sender: 'โป้', isMe: true, text: 'ไม่ลืมหรอกน่า พี่เตรียมของขวัญกับเค้กไว้เรียบร้อยแล้ว ขอบใจนะจุนที่ทักมาบอก 😊', time: '20:15' },
+          { sender: 'จุน', role: 'พี่ใหญ่', color: 'bg-slate-700 text-amber-200', text: 'โอเคครับพี่ งั้นผมไม่กวนละ ขอให้ฉลองกันให้สนุกนะ 👌', time: '20:15' }
+        ]
+      }
+    };
+
+    // ---------- 6. THAME INTERACTIVE BRANCHING ROUTE ----------
+    let activeTimerInterval = null;
+    let thameStarted = false;
+
+    const ENDINGS_INFO = {
+      end1: {
+        id: 'end1',
+        title: 'อยากฉลองวันเกิดกับคนที่รัก',
+        desc: 'แม้จะแอบน้อยใจที่ไม่ได้ดินเนอร์ที่ร้านตามนัด แต่การรอคอยอย่างเงียบๆ ของโป้ก็ทำให้เธมรีบเคลียร์ทุกอย่างเพื่อกลับมาหาให้ทันก่อนเที่ยงคืน'
+      },
+      end2: {
+        id: 'end2',
+        title: 'คนรักที่สนับสนุนเราในวันเกิด',
+        desc: 'ความกล้าที่จะหอบเค้กเดินทางไปหาถึงที่ทำงานของโป้ กลายเป็นของขวัญวันเกิดที่ล้ำค่าที่สุดสำหรับเธมในค่ำคืนนี้'
+      },
+      end3: {
+        id: 'end3',
+        title: 'รีบทำงานแล้วกลับไปฉลองกับที่เรารัก',
+        desc: 'คำอ้อนตรงๆ จากคนขี้น้อยใจอย่างพี่โป้ คือพลังใจชั้นดีที่ทำให้เธมเร่งปิดจ็อบงานทั้งหมด เพื่อรีบพุ่งตรงมาฉลองวันเกิดด้วยกัน'
+      }
+    };
+
+    function getUnlockedEndings() {
+      try {
+        return JSON.parse(localStorage.getItem('po_thame_endings') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function unlockEnding(endKey) {
+      const unlocked = getUnlockedEndings();
+      if (!unlocked.includes(endKey)) {
+        unlocked.push(endKey);
+        localStorage.setItem('po_thame_endings', JSON.stringify(unlocked));
+      }
+      updateEndingUI();
+      showEndingModal(endKey);
+    }
+
+    function updateEndingUI() {
+      const unlocked = getUnlockedEndings();
+      document.getElementById('ending-counter').textContent = `${unlocked.length}/3`;
+    }
+
+    function showEndingModal(endKey) {
+      const info = ENDINGS_INFO[endKey];
+      const unlocked = getUnlockedEndings();
+
+      if (info) {
+        document.getElementById('modal-badge').textContent = '✨ ปลดล็อกฉากจบสำเร็จ ✨';
+        document.getElementById('modal-ending-title').textContent = `「 ${info.title} 」`;
+        document.getElementById('modal-ending-desc').textContent = info.desc;
+      } else {
+        document.getElementById('modal-badge').textContent = '🏆 คอลเลกชันฉากจบ';
+        document.getElementById('modal-ending-title').textContent = 'Three Ways Tonight';
+        document.getElementById('modal-ending-desc').textContent = 'เลือกคำตอบในแชทของเธมเพื่อปลดล็อกทั้ง 3 เส้นทางความรักในคืนวันเกิด';
+      }
+
+      document.getElementById('modal-count').textContent = unlocked.length;
+      const listEl = document.getElementById('ending-collection-list');
+      listEl.innerHTML = Object.values(ENDINGS_INFO).map((item, idx) => {
+        const isDone = unlocked.includes(item.id);
+        return `
+          <div class="p-2.5 rounded-xl border ${isDone ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200' : 'bg-slate-800/70 border-slate-700 text-slate-400'} flex items-center justify-between">
+            <span>${idx + 1}. ${isDone ? item.title : '??? (ยังไม่ปลดล็อก)'}</span>
+            <span>${isDone ? '✅' : '🔒'}</span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('ending-modal').classList.remove('hidden');
+      playNotifySound();
+    }
+
+    function openEndingsModal() {
+      showEndingModal(null);
+    }
+
+    function closeEndingsModal() {
+      document.getElementById('ending-modal').classList.add('hidden');
+    }
+
+    // ---------- 7. CHAT ROOM RENDERING & STORY FLOW ----------
+    function backToChatList() {
+      document.getElementById('line-room-view').classList.add('hidden');
+      document.getElementById('line-list-view').classList.remove('hidden');
+    }
+
+    function openChatRoom(chatId) {
+      playTone(620, 0.06);
+      document.getElementById('line-list-view').classList.add('hidden');
+      document.getElementById('line-room-view').classList.remove('hidden');
+
+      const badge = document.getElementById(`badge-${chatId}`);
+      if (badge) badge.classList.add('hidden');
+
+      const resetBtn = document.getElementById('room-reset-btn');
+      const narrationBar = document.getElementById('scene-narration-bar');
+      const choicePanel = document.getElementById('choice-panel');
+      const waitPanel = document.getElementById('wait-timer-panel');
+
+      if (chatId === 'mars' || chatId === 'jun') {
+        resetBtn.classList.add('hidden');
+        choicePanel.classList.add('hidden');
+        waitPanel.classList.add('hidden');
+
+        const data = staticChats[chatId];
+        document.getElementById('room-title').textContent = data.title;
+        document.getElementById('room-subtitle').textContent = data.subtitle;
+        narrationBar.classList.remove('hidden');
+        document.getElementById('scene-narration-text').textContent = data.narration;
+
+        const container = document.getElementById('chat-messages');
+        container.innerHTML = '';
+        data.messages.forEach(msg => appendMessage(msg, false));
+      } else if (chatId === 'thame') {
+        resetBtn.classList.remove('hidden');
+        document.getElementById('room-title').textContent = 'เธม ❤️';
+        document.getElementById('room-subtitle').textContent = 'ออนไลน์';
+        if (!thameStarted) {
+          startThameIntro();
+        }
+      }
+    }
+
+    function clearWaitTimer() {
+      if (activeTimerInterval) {
+        clearInterval(activeTimerInterval);
+        activeTimerInterval = null;
+      }
+      document.getElementById('wait-timer-panel').classList.add('hidden');
+    }
+
+    function resetThameStory() {
+      clearWaitTimer();
+      thameStarted = false;
+      document.getElementById('choice-panel').classList.add('hidden');
+      startThameIntro();
+    }
+
+    function appendMessage({ sender, role, color, text, time, isMe, imageSrc }, withSound = true) {
+      const container = document.getElementById('chat-messages');
+      const wrapper = document.createElement('div');
+      wrapper.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} msg-pop`;
+
+      if (isMe) {
+        wrapper.innerHTML = `
+          <div class="flex items-end gap-1.5 max-w-[82%]">
+            <span class="text-[10px] text-slate-800/80 mb-0.5 shrink-0">${time || '20:46'}</span>
+            <div class="bg-[#98E165] text-slate-900 rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-xs leading-relaxed shadow-sm">
+              ${imageSrc ? `
+                <div class="mb-2 overflow-hidden rounded-xl border border-black/10 bg-slate-900">
+                  <img src="${imageSrc}" alt="เค้กวันเกิด" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" class="w-48 h-56 object-cover" />
+                  <div style="display:none;" class="w-48 h-40 flex-col items-center justify-center bg-gradient-to-b from-amber-100 to-rose-100 text-slate-800 p-3 text-center">
+                    <span class="text-4xl mb-1">🎂🕯️</span>
+                    <span class="font-display font-semibold text-xs text-rose-600">happy birthday</span>
+                    <span class="text-[10px] text-slate-500 mt-1">(อัปโหลดรูป cake.jpg ลง GitHub เพื่อแสดงรูปจริง)</span>
+                  </div>
+                </div>
+              ` : ''}
+              <p class="whitespace-pre-line">${text}</p>
+            </div>
+          </div>
+        `;
+      } else {
+        const avatarBg = color || 'bg-rose-500 text-white';
+        const shortName = sender ? sender.slice(0, 2) : 'T';
+        wrapper.innerHTML = `
+          <div class="flex items-start gap-2 max-w-[85%]">
+            <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5 shadow-sm">
+              ${shortName}
+            </div>
+            <div>
+              <p class="text-[11px] font-medium text-slate-900/90 mb-0.5 ml-1">
+                ${sender} ${role ? `<span class="text-[10px] opacity-75">• ${role}</span>` : ''}
+              </p>
+              <div class="flex items-end gap-1.5">
+                <div class="bg-white text-slate-900 rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-xs leading-relaxed shadow-sm">
+                  <p class="whitespace-pre-line">${text}</p>
+                </div>
+                <span class="text-[10px] text-slate-800/80 mb-0.5 shrink-0">${time || '20:45'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      container.appendChild(wrapper);
+      container.scrollTop = container.scrollHeight;
+      if (withSound) playNotifySound();
+    }
+
+    function setNarration(text) {
+      const bar = document.getElementById('scene-narration-bar');
+      bar.classList.remove('hidden');
+      document.getElementById('scene-narration-text').textContent = text;
+    }
+
+    function showChoices(promptText, options) {
+      const panel = document.getElementById('choice-panel');
+      const btnContainer = document.getElementById('choice-buttons');
+      document.getElementById('choice-prompt').textContent = promptText;
+      btnContainer.innerHTML = '';
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full text-left px-4 py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white text-xs font-medium leading-relaxed shadow transition flex items-center justify-between gap-2';
+        btn.innerHTML = `<span>${opt.label}</span><span class="text-rose-400 shrink-0">ส่ง ›</span>`;
+        btn.onclick = () => {
+          panel.classList.add('hidden');
+          opt.action();
+        };
+        btnContainer.appendChild(btn);
+      });
+
+      panel.classList.remove('hidden');
+      const container = document.getElementById('chat-messages');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Real-time accelerated timer: 1 in-game hour = 2 real-world minutes (120 seconds)
+    function startInGameWait({ title, desc, startTimeText, endTimeText, gameHours, onComplete }) {
+      clearWaitTimer();
+      const totalSeconds = gameHours * 120; // 1 hr = 2 mins = 120s
+      let remaining = totalSeconds;
+
+      const panel = document.getElementById('wait-timer-panel');
+      const titleEl = document.getElementById('wait-title');
+      const descEl = document.getElementById('wait-desc');
+      const clockEl = document.getElementById('wait-game-clock');
+      const barEl = document.getElementById('wait-progress-bar');
+      const countEl = document.getElementById('wait-countdown');
+
+      titleEl.textContent = title;
+      descEl.textContent = desc;
+      clockEl.textContent = `${startTimeText} → ${endTimeText}`;
+      barEl.style.width = '0%';
+      panel.classList.remove('hidden');
+
+      function updateDisplay() {
+        const mins = String(Math.floor(remaining / 60)).padStart(2, '0');
+        const secs = String(remaining % 60).padStart(2, '0');
+        countEl.textContent = `เหลือเวลา ${mins}:${secs}`;
+        const pct = Math.min(100, ((totalSeconds - remaining) / totalSeconds) * 100);
+        barEl.style.width = `${pct}%`;
+      }
+
+      updateDisplay();
+      const chatBox = document.getElementById('chat-messages');
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      activeTimerInterval = setInterval(() => {
+        remaining--;
+        updateDisplay();
+        if (remaining <= 0) {
+          clearWaitTimer();
+          onComplete();
+        }
+      }, 1000);
+    }
+
+    // ---------- STEP-BY-STEP THAME ROUTE SCENES ----------
+    function startThameIntro() {
+      thameStarted = true;
+      const container = document.getElementById('chat-messages');
+      container.innerHTML = '';
+
+      setNarration('📍 ณ ร้านอาหารที่จองไว้ — โป้นั่งมองเค้กวันเกิดตรงหน้า หัวใจแอบวูบโหวงเมื่อเห็นข้อความจากเธมเด้งขึ้นมา...');
+
+      setTimeout(() => {
+        appendMessage({
+          sender: 'เธม ❤️',
+          role: 'ลีดเดอร์ MARS',
+          color: 'bg-rose-600 text-white',
+          text: 'พี่โป้ครับ... เธมขอโทษจริงๆ นะครับ',
+          time: '20:44'
+        });
+      }, 350);
+
+      setTimeout(() => {
+        appendMessage({
+          sender: 'เธม ❤️',
+          role: 'ลีดเดอร์ MARS',
+          color: 'bg-rose-600 text-white',
+          text: 'นัดของเราวันนี้อาจจะไม่ได้แล้ว คิวงานถ่ายรันล่าช้ามากเลย ทำให้ไปไม่ทันเวลาจองร้านแน่ๆ ขอโทษนะครับพี่โป้ 😢',
+          time: '20:45'
+        });
+      }, 1150);
+
+      setTimeout(() => {
+        setNarration('💭 ในใจของโป้: อุตส่าห์เคลียร์งานรีบมารอ... แต่เธมก็ทำงานหนักเหมือนกัน จะตอบกลับไปยังไงดีนะ?');
+        showChoices('เลือกคำตอบของโป้ (มีผลต่อเส้นทางและฉากจบ):', [
+          {
+            label: '1. "ไม่เป็นไร เดี๋ยวจะรอที่บ้านล่ะกัน"',
+            action: chooseRoute1_WaitAtHome
+          },
+          {
+            label: '2. "ให้ไปหาไหม อยากรับกลับบ้านด้วยกัน"',
+            action: chooseRoute2_AskToVisit
+          },
+          {
+            label: '3. (อ้อน) "รีบทำงานให้เสร็จนะ เดี๋ยวรอตรงนี้"',
+            action: chooseRoute3_ClingyWait
+          }
+        ]);
+      }, 1900);
+    }
+
+    // --- ROUTE 1: เก็บความน้อยใจ กลับไปรอที่บ้าน (รอ ~2 ชม.ในเกม = 4 นาทีจริง) ---
+    function chooseRoute1_WaitAtHome() {
+      appendMessage({
+        isMe: true,
+        text: 'ไม่เป็นไร เดี๋ยวจะรอที่บ้านล่ะกัน เธมตั้งใจทำงานนะ',
+        time: '20:46'
+      });
+
+      setNarration('💭 โป้เก็บความน้อยใจไว้เงียบๆ เช็กบิลอาหารที่สั่งไว้แล้วหิ้วเค้กกลับมานั่งรอที่ห้อง...');
+
+      setTimeout(() => {
+        appendMessage({
+          sender: 'เธม ❤️',
+          role: 'ลีดเดอร์ MARS',
+          color: 'bg-rose-600 text-white',
+          text: 'ขอบคุณที่เข้าใจนะครับพี่โป้ ถึงบ้านแล้วบอกเธมด้วยนะ เธมจะรีบเคลียร์งานให้ไวที่สุดเลยครับ ❤️',
+          time: '20:47'
+        });
+      }, 900);
+
+      setTimeout(() => {
+        startInGameWait({
+          title: '🏠 โป้นั่งรอเธมอยู่ที่บ้าน (เกือบ 2 ชม. ในเกม)',
+          desc: 'โป้วางกล่องเค้กไว้บนโต๊ะ มองนาฬิกาที่ค่อยๆ เดินเข้าใกล้เที่ยงคืน... (รอครบเวลาแล้วเธมจะทักกลับมา)',
+          startTimeText: '21:35 น.',
+          endTimeText: '23:30 น.',
+          gameHours: 2, // 2 ชม.ในเกม = 4 นาทีจริง
+          onComplete: finishRoute1_Ending1
+        });
+      }, 1700);
+    }
+
+    function finishRoute1_Ending1() {
+      setNarration('🔔 23:30 น. — หน้าจอมือถือของโป้สว่างขึ้นอีกครั้ง!');
+      appendMessage({
+        sender: 'เธม ❤️',
+        role: 'ลีดเดอร์ MARS',
+        color: 'bg-rose-600 text-white',
+        text: 'พี่โป้ครับ งานเสร็จแล้ว! เธมขอโทษจริงๆ ที่ปล่อยให้รอนาน ตอนนี้กำลังรีบขับรถกลับไปหาพี่โป้แล้วนะครับ',
+        time: '23:30'
+      });
+
+      setTimeout(() => {
+        appendMessage({
+          isMe: true,
+          text: 'รีบมานะ ก่อนจะเลยเที่ยงคืน 🎂❤️',
+          time: '23:31'
+        });
+      }, 1000);
+
+      setTimeout(() => {
+        unlockEnding('end1');
+      }, 2200);
+    }
+
+    // --- ROUTE 2: ขอไปหา -> เธมลังเลปฏิเสธ -> เลือกซ้ำ (กลับบ้าน vs ไปหาจริง) ---
+    function chooseRoute2_AskToVisit() {
+      appendMessage({
+        isMe: true,
+        text: 'ให้ไปหาไหม อยากรับกลับบ้านด้วยกัน',
+        time: '20:46'
+      });
+
+      setTimeout(() => {
+        appendMessage({
+          sender: 'เธม ❤️',
+          role: 'ลีดเดอร์ MARS',
+          color: 'bg-rose-600 text-white',
+          text: 'เอ่อ... อย่าเลยครับพี่โป้ ดึกแล้วแถมกองถ่ายอยู่ไกลด้วย เธมไม่อยากให้พี่โป้ขับรถเหนื่อย พี่โป้กลับไปพักผ่อนก่อนดีกว่านะครับ',
+          time: '20:47'
+        });
+      }, 1000);
+
+      setTimeout(() => {
+        setNarration('💭 เธมดูลังเลและเกรงใจไม่อยากให้เราลำบาก... แต่ใจลึกๆ โป้อยากเจอหน้าเจ้าของวันเกิดคืนนี้จริงๆ');
+        showChoices('โป้จะตัดสินใจยังไงต่อ?', [
+          {
+            label: 'A. "จะไปหา" (หอบเค้กไปเซอร์ไพรส์ถึงที่ทำงาน)',
+            action: chooseRoute2B_GoSurprise
+          },
+          {
+            label: 'B. "กลับไปรอที่บ้าน" (ยอมทำตามที่เธมบอก)',
+            action: chooseRoute2A_BackHome
+          }
+        ]);
+      }, 1900);
+    }
+
+    // Sub-route 2A -> Leads to Ending 1
+    function chooseRoute2A_BackHome() {
+      appendMessage({
+        isMe: true,
+        text: 'อืม... งั้นพี่กลับไปรอที่บ้านก็ได้ รีบกลับมานะ',
+        time: '20:48'
+      });
+
+      setNarration('💭 โป้ยอมพับแผนเซอร์ไพรส์เก็บไว้ แล้วกลับไปนั่งรอเธมที่บ้านอย่างเงียบๆ...');
+
+      setTimeout(() => {
+        startInGameWait({
+          title: '🏠 โป้กลับมารอเธมที่บ้าน (เกือบ 2 ชม. ในเกม)',
+          desc: 'บรรยากาศในห้องเงียบเชียบ มีเพียงแสงไฟสลัวๆ กับเค้กวันเกิดที่รอเจ้าของมาเป่าเทียน...',
+          startTimeText: '21:35 น.',
+          endTimeText: '23:30 น.',
+          gameHours: 2,
+          onComplete: finishRoute1_Ending1
+        });
+      }, 1000);
+    }
+
+    // Sub-route 2B -> Travel 1 in-game hour (2 real minutes) -> Send cake photo -> Ending 2
+    function chooseRoute2B_GoSurprise() {
+      appendMessage({
+        isMe: true,
+        text: 'ไม่ดื้อนะ รอแป๊บหนึ่ง เดี๋ยวพี่ไปหาเอง',
+        time: '20:48'
+      });
+
+      setNarration('🚗 โป้ตัดสินใจคว้ากล่องเค้กและของขวัญ ขับรถมุ่งหน้าไปที่กองถ่ายของเธมทันที!');
+
+      setTimeout(() => {
+        startInGameWait({
+          title: '🚗 กำลังเดินทางไปเซอร์ไพรส์เธม (1 ชม. ในเกม)',
+          desc: 'โป้ขับรถฝ่าการจราจรยามค่ำคืน โดยมีกล่องเค้กวันเกิดวางอยู่เบาะข้างๆ...',
+          startTimeText: '20:50 น.',
+          endTimeText: '21:50 น.',
+          gameHours: 1, // 1 ชม.ในเกม = 2 นาทีจริง
+          onComplete: finishRoute2B_Ending2
+        });
+      }, 900);
+    }
+
+    function finishRoute2B_Ending2() {
+      setNarration('📍 21:50 น. — โป้เดินทางมาถึงหน้ากองถ่ายของเธมเรียบร้อยแล้ว!');
+
+      appendMessage({
+        isMe: true,
+        text: 'ถึงแล้วนะ',
+        time: '21:50'
+      });
+
+      setTimeout(() => {
+        appendMessage({
+          isMe: true,
+          imageSrc: 'cake.jpg',
+          text: 'มารับเค้กกับแฟนหน่อย 🎂🕯️',
+          time: '21:50'
+        });
+      }, 900);
+
+      setTimeout(() => {
+        appendMessage({
+          sender: 'เธม ❤️',
+          role: 'ลีดเดอร์ MARS',
+          color: 'bg-rose-600 text-white',
+          text: 'พี่โป้!! มาจริงๆ เหรอครับเนี่ย รอตรงนั้นแป๊บเดียวนะครับ เธมขอวิ่งออกไปกอดเดี๋ยวนี้เลย!! 😭❤️❤️',
+          time: '21:51'
+        });
+      }, 2000);
+
+      setTimeout(() => {
+        unlockEnding('end2');
+      }, 3300);
+    }
+
+    // --- ROUTE 3: อ้อนว่ารีบทำงานให้เสร็จนะ (รอ 2 ชม.ในเกม = 4 นาทีจริง) -> Ending 3 ---
+    function chooseRoute3_ClingyWait() {
+      appendMessage({
+        isMe: true,
+        text: 'รีบทำงานให้เสร็จนะ พี่จะรอตรงนี้แหละ กว่าร้านจะปิดอีกตั้งหลายชั่วโมง พี่รอได้... แต่อยากให้มาฉลองด้วยกันนะ 🥺',
+        time: '20:46'
+      });
+
+      setNarration('💓 นานๆ ทีคนขี้น้อยใจอย่างพี่โป้จะยอมพูดอ้อนตรงๆ ออกไปแบบนี้...');
+
+      setTimeout(() => {
+        appendMessage({
+          sender: 'เธม ❤️',
+          role: 'ลีดเดอร์ MARS',
+          color: 'bg-rose-600 text-white',
+          text: 'พี่โป้อ้อนแบบนี้ เธมใจละลายหมดแล้วครับ... สัญญาเลยว่าจะรีบเคลียร์งานทุกอย่างให้เร็วที่สุด แล้วจะรีบไปหาพี่โป้ทันที รอเธมนะครับ ❤️✨',
+          time: '20:47'
+        });
+      }, 1100);
+
+      setTimeout(() => {
+        startInGameWait({
+          title: '🕯️ โป้นั่งรอเธมที่ร้านอาหาร (2 ชม. ในเกม)',
+          desc: 'โป้จิบเครื่องดื่มอุ่นๆ รออย่างใจจดใจจ่อ รู้ว่าอีกไม่นานคนขี้อ้อนของเขาต้องรีบมาหาแน่นอน...',
+          startTimeText: '20:50 น.',
+          endTimeText: '22:50 น.',
+          gameHours: 2, // 2 ชม.ในเกม = 4 นาทีจริง
+          onComplete: finishRoute3_Ending3
+        });
+      }, 2000);
+    }
+
+    function finishRoute3_Ending3() {
+      setNarration('🔔 22:50 น. — แจ้งเตือนข้อความจากเธมเด้งขึ้นมา!');
+
+      appendMessage({
+        sender: 'เธม ❤️',
+        role: 'ลีดเดอร์ MARS',
+        color: 'bg-rose-600 text-white',
+        text: 'กำลังไปหานะครับพี่โป้! เคลียร์งานเสร็จปุ๊บเธมรีบออกมาเลย รออีกนิดเดียวนะครับ 🚗💨❤️',
+        time: '22:50'
+      });
+
+      setTimeout(() => {
+        appendMessage({
+          isMe: true,
+          text: 'ระวังตัวด้วยนะ ขับรถดีๆ พี่รออยู่ 😊❤️',
+          time: '22:51'
+        });
+      }, 1000);
+
+      setTimeout(() => {
+        unlockEnding('end3');
+      }, 2200);
+    }
+
+    // Initialize UI on load
+    updateEndingUI();
+  </script>
+</body>
+</html>
